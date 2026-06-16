@@ -1,0 +1,896 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>🍈 灵魂文哲匹配器</title>
+<script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;600;700;900&family=Inter:wght@400;500;600;700&display=swap');
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: 'Noto Serif SC', 'Inter', serif;
+    background: #0a0e17; color: #e0e6ed; min-height: 100vh;
+    display: flex; justify-content: center; align-items: center;
+    padding: 20px;
+  }
+  .container { max-width: 700px; width: 100%; }
+
+  /* Start page */
+  .start-page { text-align: center; padding: 40px 20px; }
+  .logo { font-size: 72px; margin-bottom: 10px; }
+  .start-page h1 { font-size: 32px; font-weight: 900; letter-spacing: 2px; margin-bottom: 8px; }
+  .start-page h1 span { color: #f59e0b; }
+  .start-page .tagline { font-size: 16px; color: #9ca3af; line-height: 1.8; margin: 16px 0 8px; }
+  .start-page .sub { font-size: 14px; color: #6b7280; margin-bottom: 32px; }
+  .btn {
+    display: inline-block; padding: 16px 48px; border-radius: 40px;
+    font-size: 18px; font-weight: 700; font-family: inherit;
+    cursor: pointer; border: none; transition: all 0.3s;
+    background: linear-gradient(135deg, #f59e0b, #d97706); color: #1a1a2e;
+  }
+  .btn:hover { transform: translateY(-2px); box-shadow: 0 8px 30px rgba(245,158,11,0.3); }
+  .btn-small {
+    padding: 10px 28px; font-size: 14px; border-radius: 30px;
+    background: rgba(255,255,255,0.08); color: #e0e6ed; border: 1px solid rgba(255,255,255,0.12);
+    cursor: pointer; font-family: inherit; transition: all 0.3s;
+  }
+  .btn-small:hover { background: rgba(255,255,255,0.12); }
+  .philosopher-preview { 
+    display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; margin: 28px 0;
+  }
+  .preview-item {
+    background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.06);
+    padding: 6px 14px; border-radius: 16px; font-size: 13px; color: #9ca3af;
+  }
+
+  /* Quiz page */
+  .quiz-page { display: none; padding: 20px 0; }
+  .progress-bar-bg {
+    width: 100%; height: 6px; background: rgba(255,255,255,0.06); border-radius: 10px; overflow: hidden; margin-bottom: 12px;
+  }
+  .progress-bar-fill {
+    height: 100%; border-radius: 10px; background: linear-gradient(90deg, #f59e0b, #10b981);
+    transition: width 0.5s ease;
+  }
+  .progress-text { text-align: right; font-size: 13px; color: #6b7280; margin-bottom: 24px; }
+  .question-card {
+    background: linear-gradient(135deg, rgba(255,255,255,0.04), rgba(255,255,255,0.02));
+    border: 1px solid rgba(255,255,255,0.08); border-radius: 20px; padding: 28px 24px;
+    min-height: 300px;
+  }
+  .q-number { font-size: 12px; color: #f59e0b; font-weight: 600; letter-spacing: 1px; margin-bottom: 8px; }
+  .q-text { font-size: 20px; font-weight: 700; line-height: 1.6; margin-bottom: 24px; }
+  .options { display: flex; flex-direction: column; gap: 10px; }
+  .option {
+    padding: 14px 20px; border-radius: 14px;
+    background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08);
+    cursor: pointer; transition: all 0.3s; font-size: 15px; line-height: 1.5;
+    font-family: inherit; color: #d1d5db;
+  }
+  .option:hover { background: rgba(255,255,255,0.08); border-color: rgba(245,158,11,0.3); }
+  .option.selected { background: rgba(245,158,11,0.12); border-color: #f59e0b; color: #fbbf24; }
+
+  /* Result page */
+  .result-page { display: none; padding: 20px 0; }
+  .result-card {
+    background: linear-gradient(135deg, rgba(255,255,255,0.04), rgba(255,255,255,0.02));
+    border: 1px solid rgba(255,255,255,0.08); border-radius: 24px; padding: 32px 28px;
+    text-align: center;
+  }
+  .result-avatar {
+    width: 120px; height: 120px; border-radius: 60px;
+    margin: 0 auto 16px; overflow: hidden;
+    background: linear-gradient(135deg, #1e293b, #334155);
+    display: flex; align-items: center; justify-content: center;
+    border: 3px solid rgba(245,158,11,0.3);
+  }
+  .result-avatar .emoji-avatar { font-size: 52px; }
+  .result-avatar img { width: 100%; height: 100%; object-fit: cover; border-radius:50%; }
+  .result-name { font-size: 28px; font-weight: 900; margin-bottom: 2px; }
+  .result-enname { font-size: 14px; color: #6b7280; margin-bottom: 4px; }
+  .result-years { font-size: 12px; color: #4b5563; margin-bottom: 16px; }
+  .result-tags { display: flex; justify-content: center; gap: 8px; margin-bottom: 20px; }
+  .tag {
+    padding: 4px 14px; border-radius: 16px; font-size: 12px;
+    background: rgba(245,158,11,0.1); color: #f59e0b; border: 1px solid rgba(245,158,11,0.15);
+  }
+  .result-quote {
+    font-size: 18px; font-style: italic; line-height: 1.8;
+    color: #fbbf24; padding: 20px; margin-bottom: 20px;
+    border-left: 3px solid rgba(245,158,11,0.3);
+    background: rgba(245,158,11,0.03); border-radius: 0 12px 12px 0;
+    text-align: left;
+  }
+  .result-desc {
+    font-size: 15px; line-height: 2; color: #9ca3af; text-align: left; margin-bottom: 24px;
+  }
+  .result-actions { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
+  .match-bar-section { margin-bottom: 20px; }
+  .match-bar {
+    display: flex; align-items: center; gap: 10px; margin-bottom: 6px;
+  }
+  .match-bar .label { font-size: 12px; color: #6b7280; width: 60px; text-align: right; flex-shrink: 0; }
+  .match-bar .bar-bg {
+    flex: 1; height: 6px; background: rgba(255,255,255,0.05); border-radius: 10px; overflow: hidden;
+  }
+  .match-bar .bar-fill {
+    height: 100%; border-radius: 10px; transition: width 1s ease;
+  }
+  .match-bar .bar-pct { font-size: 12px; color: #9ca3af; width: 36px; text-align: right; }
+
+  .loading-text { text-align: center; padding: 60px 20px; color: #6b7280; font-size: 16px; }
+  .dimension-chart { display: none; margin: 20px 0; padding: 16px; background: rgba(255,255,255,0.02); border-radius: 16px; }
+  .dimension-chart h4 { font-size: 13px; color: #6b7280; margin-bottom: 12px; }
+  
+  .reset-btn {
+    display: inline-block; padding: 12px 28px; border-radius: 30px;
+    font-size: 14px; font-family: inherit; font-weight: 600;
+    cursor: pointer; border: 1px solid rgba(255,255,255,0.12);
+    background: transparent; color: #9ca3af; transition: all 0.3s;
+  }
+  .reset-btn:hover { border-color: rgba(255,255,255,0.25); color: #e0e6ed; }
+
+  @media (max-width: 480px) {
+    .start-page h1 { font-size: 24px; }
+    .q-text { font-size: 17px; }
+    .option { font-size: 14px; padding: 12px 16px; }
+    .result-card { padding: 24px 16px; }
+    .result-quote { font-size: 16px; }
+  }
+</style>
+</head>
+<body>
+<div class="container" id="app">
+  <!-- Start Page -->
+  <div class="start-page" id="startPage">
+    <div class="logo">📖</div>
+    <h1>灵魂文哲<span>匹配器</span></h1>
+    <div class="tagline">
+      50道题，找到与你灵魂共振的<br>
+      文学家或哲学家 ✦
+    </div>
+    <div class="philosopher-preview">
+      <span class="preview-item">加缪</span>
+      <span class="preview-item">鲁迅</span>
+      <span class="preview-item">庄子</span>
+      <span class="preview-item">尼采</span>
+      <span class="preview-item">毛姆</span>
+      <span class="preview-item">史铁生</span>
+      <span class="preview-item">萨特</span>
+      <span class="preview-item">余华</span>
+      <span class="preview-item">帕斯卡</span>
+      <span class="preview-item">刘震云</span>
+      <span class="preview-item">苏轼</span>
+      <span class="preview-item">王小波</span>
+      <span class="preview-item">张爱玲</span>
+      <span class="preview-item">杜甫</span>
+      <span class="preview-item">柏拉图</span>
+      <span class="preview-item">叔本华</span>
+      <span class="preview-item">卡夫卡</span>
+      <span class="preview-item">博尔赫斯</span>
+      <span class="preview-item">海明威</span>
+      <span class="preview-item">黑塞</span>
+    </div>
+    <div class="sub">🍈 榴莲大王</div>
+    <button class="btn" onclick="startQuiz()">开始测试 →</button>
+  </div>
+
+  <!-- Quiz Page -->
+  <div class="quiz-page" id="quizPage">
+    <div class="progress-bar-bg">
+      <div class="progress-bar-fill" id="progressFill" style="width:0%"></div>
+    </div>
+    <div class="progress-text"><span id="qNum">1</span> / 50</div>
+    <div class="question-card">
+      <div class="q-number" id="qNumber">问题 1</div>
+      <div class="q-text" id="qText">加载中...</div>
+      <div class="options" id="options"></div>
+    </div>
+  </div>
+
+  <!-- Result Page -->
+  <div class="result-page" id="resultPage">
+    <div class="result-card" id="resultCard">
+      <div class="result-avatar" id="resultAvatar">🍈</div>
+      <div class="result-name" id="resultName">—</div>
+      <div class="result-enname" id="resultEnName">—</div>
+      <div class="result-years" id="resultYears">—</div>
+      <div class="result-tags" id="resultTags"></div>
+      <div class="match-bar-section" id="matchBars"></div>
+      <div class="result-quote" id="resultQuote">" "</div>
+      <div class="result-desc" id="resultDesc">—</div>
+      <div class="result-actions">
+        <button class="btn btn-small" onclick="saveAsImage()">📸 保存图片</button>
+        <button class="btn btn-small" onclick="restartQuiz()">🔁 再测一次</button>
+        <button class="reset-btn" onclick="showStart()">← 返回首页</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ======== PHILOSOPHERS ========
+const philosophers = [
+  { id:"camus", name:"阿尔贝·加缪", en:"Albert Camus", years:"1913-1960",
+    emoji:"☀️", img:"https://upload.wikimedia.org/wikipedia/commons/0/08/Albert_Camus_photo.jpg",
+    quote:"在隆冬，我终于知道，我身上有一个不可战胜的夏天。",
+    desc:"你是加缪式的灵魂——在荒诞的世界里清醒地活着，不逃避也不屈服。你知道生活没有终极意义，但这不妨碍你热烈地去爱它。你是那种在黑暗中依然选择向光而行的人，温柔而坚定，孤独而勇敢。",
+    tags:["存在主义","荒诞","反抗"], dims:[2,-1,2,-1,3] },
+  { id:"luxun", name:"鲁迅", en:"Lu Xun", years:"1881-1936",
+    emoji:"⚡", img:"https://upload.wikimedia.org/wikipedia/commons/4/4a/Lu_Xun_1930.jpg",
+    quote:"愿中国青年都摆脱冷气，只是向上走，不必听自暴自弃者流的话。能做事的做事，能发声的发声。有一分热，发一分光。",
+    desc:"你的灵魂里住着鲁迅——敏锐、锋利、不容忍虚伪。你看透了人性的弱点，却依然选择站出来发声。你不怕孤独，只怕麻木。你是那个在众人沉默时仍愿说真话的人。",
+    tags:["批判","觉醒","孤独"], dims:[2,-3,3,1,3] },
+  { id:"zhuangzi", name:"庄子", en:"Zhuangzi", years:"约前369-286",
+    emoji:"🦋", img:null,
+    quote:"\u201c天地与我并生，而万物与我为一。\u201d",
+    desc:"你的气质像庄子——逍遥、通透、自在。你不被世俗的标准所困，知道什么是真正重要的。你不争不抢，却什么都懂。你是那种在喧嚣中仍能保持内心宁静的人。",
+    tags:["逍遥","自然","自在"], dims:[-2,3,-3,-2,-2] },
+  { id:"nietzsche", name:"弗里德里希·尼采", en:"Friedrich Nietzsche", years:"1844-1900",
+    emoji:"⚔️", img:"https://upload.wikimedia.org/wikipedia/commons/6/65/Nietzsche187c.jpg",
+    quote:"那些杀不死我的，终将使我更强大。",
+    desc:"你拥有尼采式的灵魂——独立、骄傲、不甘平庸。你拒绝被定义，拒绝盲从，宁可孤独也要做自己。你看穿了「上帝已死」的世界，选择自己创造价值。你是自己的超人。",
+    tags:["超人哲学","权力意志","独立"], dims:[3,-2,-2,1,3] },
+  { id:"maugham", name:"威廉·萨默塞特·毛姆", en:"W. Somerset Maugham", years:"1874-1965",
+    emoji:"🎭", img:"https://upload.wikimedia.org/wikipedia/commons/f/f5/W._Somerset_Maugham_%28photo_portrait%29.jpg",
+    quote:"人生不过是一片荒谬的闹剧，但你可以选择好好地演完它。",
+    desc:"你身上有毛姆的影子——看透世事，却不愤世嫉俗。你喜欢观察人，理解人性中所有的复杂和矛盾。你知道生活有时候很无聊，但总能从中找到有趣的角度。你是一个冷静的旁观者，也是一个温柔的讲述者。",
+    tags:["人性洞察","毒舌","讲故事"], dims:[0,-1,2,-2,-1] },
+  { id:"shitie", name:"史铁生", en:"Shi Tiesheng", years:"1951-2010",
+    emoji:"🌿", img:null,
+    quote:"死是一件不必急于求成的事，死是一个必然会降临的节日。",
+    desc:"你的灵魂深处和史铁生相通——你在痛苦中思考，在困境中寻找意义。你不回避苦难，而是把它转化为对生命的深刻理解。你知道真正的勇气不是不害怕，而是在害怕中依然选择前行。",
+    tags:["苦难","沉思","生命"], dims:[-3,-2,-1,-2,1] },
+  { id:"sartre", name:"让-保罗·萨特", en:"Jean-Paul Sartre", years:"1905-1980",
+    emoji:"✊", img:"https://upload.wikimedia.org/wikipedia/commons/5/52/Jean-Paul_Sartre_FP.jpg",
+    quote:"人是自由的，人注定自由，人背负着自由的重量。",
+    desc:"你是萨特式的人物——相信选择的力量，也承担选择的代价。你知道没有借口可找，没有命运可怨，一切都是自己的选择。你活得清醒且负责，也许有点累，但你从不后悔。",
+    tags:["存在先于本质","自由","责任"], dims:[2,-2,3,1,2] },
+  { id:"yuhua", name:"余华", en:"Yu Hua", years:"1960-",
+    emoji:"🌧️", img:null,
+    quote:"人是为了活着本身而活着，而不是为了活着之外的任何事物而活着。",
+    desc:"你像余华笔下的人物——见识过生活的残酷，却依然平静地活着。你不粉饰太平，也不抱怨命运。你知道活着本来就很难，但活着本身就是全部的意义。你的坚强不是轰轰烈烈的，而是那种沉默的、坚韧的。",
+    tags:["活着","现实","坚韧"], dims:[-1,-3,1,-2,0] },
+  { id:"pascal", name:"布莱兹·帕斯卡", en:"Blaise Pascal", years:"1623-1662",
+    emoji:"🌾", img:"https://upload.wikimedia.org/wikipedia/commons/6/60/Blaise_pascal.jpg",
+    quote:"人是一根会思考的芦苇。",
+    desc:"你像帕斯卡——敏感、深邃，知道自己在宇宙面前的渺小，但决不放弃思考的权利。你是那种被存在的重量压得喘不过气，却依然仰望星空的人。你的脆弱是你的力量。",
+    tags:["信仰","思考","脆弱"], dims:[-3,-3,-1,0,-2] },
+  { id:"liuzhenyun", name:"刘震云", en:"Liu Zhenyun", years:"1958-",
+    emoji:"😏", img:null,
+    quote:"生活就是一个笑话接一个笑话。但笑完之后，你还是得继续过下去。",
+    desc:"你的灵魂有刘震云的幽默和通透——你看穿了生活的荒谬，但不愤怒，而是找到了一种哭笑不得的接纳。你擅长用轻松的方式说出沉重的事，笑着把生活的苦咽下去。你是饭桌上那个最有趣的人。",
+    tags:["现实主义","幽默","深刻"], dims:[1,-1,2,-2,-1] },
+  { id:"sushi", name:"苏轼", en:"Su Shi (苏东坡)", years:"1037-1101",
+    emoji:"🍶", img:null,
+    quote:"人生如逆旅，我亦是行人。",
+    desc:"你的灵魂里住着苏东坡——豁达、有趣、不拧巴。人生大起大落，但你总能在任何境遇中找到值得开心的事。被贬了就种地吃东坡肉，下雨了就'何妨吟啸且徐行'。你是那种即使生活给了你一记重拳，也能笑着回一句'还行'的人。",
+    tags:["豁达","洒脱","有趣"], dims:[-1,3,-1,-2,-2] },
+  { id:"wangxiaobo", name:"王小波", en:"Wang Xiaobo", years:"1952-1997",
+    emoji:"🐷", img:null,
+    quote:"一个人只拥有此生此世是不够的，他还应该拥有诗意的世界。",
+    desc:"你像王小波——聪明、有趣、不妥协。你讨厌一切虚伪和教条，总能用一种出人意料的方式戳破生活的荒谬。你喜欢思考，但不喜欢装深沉。你是那种看起来在胡说八道、实际上句句在理的人。",
+    tags:["自由","有趣","独立"], dims:[1,1,1,0,3] },
+  { id:"zhangailing", name:"张爱玲", en:"Eileen Chang", years:"1920-1995",
+    emoji:"🌙", img:"https://upload.wikimedia.org/wikipedia/commons/7/77/Eileen_Chang_%28cropped%29.jpg",
+    quote:"生命是一袭华美的袍，爬满了蚤子。",
+    desc:"你的身体里住着张爱玲——清醒、刻薄、慈悲。你看透了情爱的本质，却不否认它的美好。你懂得人性的幽微，明白每个人都在自己的牢笼里挣扎。你不是冷漠，而是看透之后的温柔。",
+    tags:["苍凉","通透","人间"], dims:[-1,-2,-1,-2,0] },
+  { id:"dufu", name:"杜甫", en:"Du Fu", years:"712-770",
+    emoji:"🏔️", img:null,
+    quote:"安得广厦千万间，大庇天下寒士俱欢颜。",
+    desc:"你的气质像杜甫——沉郁、赤诚、心怀天下。你天生敏感，对别人的痛苦感同身受。你写不出轻飘飘的诗句，因为你的心里装着太多事。你是那种即使自己过得不好，也还在操心别人的人。",
+    tags:["家国","沉郁","悲悯"], dims:[0,-3,2,0,0] },
+  { id:"plato", name:"柏拉图", en:"Plato", years:"约前427-347",
+    emoji:"💡", img:null,
+    quote:"理想存在于观念之中，现实不过是它的影子。",
+    desc:"你身上有柏拉图的影子——追求真理，相信美好的事物值得追寻。你总能看到事物背后更本质的东西，不甘心只停留在表象。你相信世界上有'更好的'，并愿意为此付出努力。",
+    tags:["理想国","理性","真理"], dims:[0,1,0,3,-1] },
+  { id:"schopenhauer", name:"亚瑟·叔本华", en:"Arthur Schopenhauer", years:"1788-1860",
+    emoji:"🌑", img:"https://upload.wikimedia.org/wikipedia/commons/1/1c/Arthur_Schopenhauer_by_J_Sch%C3%A4fer%2C_1859b.jpg",
+    quote:"人生实如钟摆——在痛苦和倦怠之间摆动。",
+    desc:"你的灵魂深处住着叔本华——清醒得近乎冷酷，悲观得极其彻底。你早早看穿了人生的真相：欲望无法被满足，满足了又会无聊。但你知道，真正的勇气不是假装世界很美好，而是在看清了一切虚无之后，依然能和自己和解。",
+    tags:["悲观","意志","孤独"], dims:[-2,-4,-2,1,-1] },
+  { id:"kafka", name:"弗朗茨·卡夫卡", en:"Franz Kafka", years:"1883-1924",
+    emoji:"🪳", img:"https://upload.wikimedia.org/wikipedia/commons/8/81/Franz_Kafka_1923.jpg",
+    quote:"一本书，必须是一把能劈开我们心中冰封大海的斧头。",
+    desc:"你的身体里有卡夫卡的影子——敏感、孤独、不被理解。你时常觉得这个世界荒诞又冰冷，规则莫名其妙，人与人之间隔着什么。但你从这种痛苦中提炼出了独特的视角——你不属于这里，所以你看得比谁都清楚。",
+    tags:["荒诞","异化","孤独"], dims:[-3,-3,-2,0,0] },
+  { id:"borges", name:"豪尔赫·路易斯·博尔赫斯", en:"Jorge Luis Borges", years:"1899-1986",
+    emoji:"🔮", img:"https://upload.wikimedia.org/wikipedia/commons/8/83/Jorge_Luis_Borges_1951_%28cropped%29.jpg",
+    quote:"我心里一直都在暗暗设想，天堂应该是图书馆的模样。",
+    desc:"你的灵魂和博尔赫斯相通——迷恋无限、迷宫、镜子、图书馆。你的精神世界比现实世界更丰富，你总是在寻找隐藏的线索和隐秘的联系。你喜欢那些让人眩晕的、意想不到的东西。你是现实世界里的幻想家。",
+    tags:["迷宫","无限","幻想"], dims:[-3,-1,-3,0,0] },
+  { id:"hemingway", name:"欧内斯特·海明威", en:"Ernest Hemingway", years:"1899-1961",
+    emoji:"🎣", img:"https://upload.wikimedia.org/wikipedia/commons/2/2b/Ernest_Hemingway_1950.jpg",
+    quote:"世界要伤害每一个人，最后许多人就在受伤的地方变得坚强。",
+    desc:"你像海明威——硬朗、直接、不说废话。你相信行动胜过言语，尊严比生命更重要。你不喜欢表达脆弱，但不代表你不脆弱。你是那种表面上'没事'，内心里'我扛得住'的人。",
+    tags:["硬汉","简洁","尊严"], dims:[2,-1,1,1,2] },
+  { id:"hesse", name:"赫尔曼·黑塞", en:"Hermann Hesse", years:"1877-1962",
+    emoji:"🌳", img:"https://upload.wikimedia.org/wikipedia/commons/5/5e/Hermann_Hesse_1927_photo.jpg",
+    quote:"世界上任何一本书都不能带给你好运，但它们能让你悄悄成为你自己。",
+    desc:"你的灵魂深处住着黑塞——一直在路上，一直在寻找。你不是那种随波逐流的人，你对'我是谁'这个问题有执念。你觉得自己像一棵树，根扎得很深，但枝叶一直在向着光生长。你的成长不张扬，但从未停止。",
+    tags:["追寻","成长","内在"], dims:[-1,0,-2,-1,0] }
+];
+
+// Dimensions: [行动vs沉思, 乐观vs悲观, 入世vs超然, 理性vs感性, 反抗vs接受]
+// Positive = 行动/悲观/入世/理性/反抗; Negative = 沉思/乐观/超然/感性/接受
+
+// ======== QUESTIONS ========
+const questions = [
+  // 1-5: 基本性格
+  { q:"周末你最可能做什么？",
+    o:[
+      { t:"一个人看书或散步发呆", d:[-1,0,0,0,0] },
+      { t:"约朋友吃饭聊天", d:[1,0,2,0,0] },
+      { t:"去美术馆或书店逛一整天", d:[-1,0,0,-1,0] },
+      { t:"在家躺平什么也不做", d:[0,0,-1,0,0] }
+    ]
+  },
+  { q:"遇到困难时，你通常是？",
+    o:[
+      { t:"马上去解决，不能等", d:[2,0,0,1,0] },
+      { t:"先想清楚再行动", d:[-1,0,0,0,0] },
+      { t:"找朋友聊聊再说", d:[0,0,1,-1,0] },
+      { t:"先放着，等它自己消化", d:[-2,0,-1,0,-1] }
+    ]
+  },
+  { q:"你觉得人性本质上是？",
+    o:[
+      { t:"善良的，只是环境让人变坏", d:[0,1,0,0,0] },
+      { t:"自私的，但可以理解", d:[0,-1,0,0,0] },
+      { t:"复杂的，很难简单定义", d:[0,0,0,-1,0] },
+      { t:"绝大多数时候挺让人失望的", d:[0,-2,0,1,0] }
+    ]
+  },
+  { q:"你更喜欢哪种类型的书？",
+    o:[
+      { t:"哲学思辨，烧脑的那种", d:[-1,0,0,1,0] },
+      { t:"小说，最好是能看哭的", d:[0,0,0,-2,0] },
+      { t:"散文随笔，轻松但有味", d:[0,1,0,-1,0] },
+      { t:"现实主义，越真实越好", d:[0,-1,1,0,0] }
+    ]
+  },
+  { q:"你对命运的看法是？",
+    o:[
+      { t:"命运是可以反抗的", d:[2,0,0,0,3] },
+      { t:"命运是注定的，接受就好", d:[-2,0,-1,0,-3] },
+      { t:"命运不存在，一切都是选择", d:[1,-1,2,1,2] },
+      { t:"命运像河流，你可以改变方向", d:[0,0,0,0,1] }
+    ]
+  },
+  // 6-10
+  { q:"你更喜欢独处还是社交？",
+    o:[
+      { t:"独处，一个人最舒服", d:[-2,0,-2,0,0] },
+      { t:"都行，看心情", d:[0,0,0,0,0] },
+      { t:"喜欢人少但深入的交流", d:[-1,0,0,-1,0] },
+      { t:"喜欢热闹，人多才有意思", d:[1,0,2,0,0] }
+    ]
+  },
+  { q:"你认为'成功'是什么？",
+    o:[
+      { t:"做自己想做的事，不被人管", d:[1,0,-1,0,2] },
+      { t:"有稳定的生活，家人幸福", d:[0,0,1,0,-1] },
+      { t:"实现自我价值，影响他人", d:[1,0,2,0,1] },
+      { t:"内心平静，不被外界打扰", d:[-1,1,-3,-1,-2] }
+    ]
+  },
+  { q:"你对'痛苦'的理解是？",
+    o:[
+      { t:"痛苦是必要的，使人成长", d:[0,0,0,0,1] },
+      { t:"痛苦毫无意义，但无法避免", d:[0,-2,0,0,0] },
+      { t:"应该直面痛苦，不逃避", d:[1,-1,1,0,2] },
+      { t:"痛苦是生命的一部分，接纳它", d:[-1,0,-1,-1,0] }
+    ]
+  },
+  { q:"你觉得人应该怎样活着？",
+    o:[
+      { t:"热烈地活，不辜负每一天", d:[2,-1,1,-1,2] },
+      { t:"平静地活，不被外界裹挟", d:[-1,1,-2,0,-1] },
+      { t:"真实地活，不虚伪不掩饰", d:[1,-1,0,0,1] },
+      { t:"为自己活，不为别人而活", d:[0,0,-1,1,2] }
+    ]
+  },
+  { q:"看到社会不公时，你通常？",
+    o:[
+      { t:"非常愤怒，想发声想改变", d:[2,0,3,0,3] },
+      { t:"感到无奈，但觉得说了也没用", d:[0,-2,1,0,0] },
+      { t:"冷静分析，找根本原因", d:[0,0,1,2,0] },
+      { t:"感慨人性如此，不值得生气", d:[0,-1,-1,0,-1] }
+    ]
+  },
+  // 11-15
+  { q:"你相信'爱情'吗？",
+    o:[
+      { t:"相信，但知道它不完美", d:[0,0,0,-1,0] },
+      { t:"相信，它是人生最重要的东西", d:[0,0,0,-2,0] },
+      { t:"不太相信，只是荷尔蒙的把戏", d:[0,0,0,1,-1] },
+      { t:"相信过，现在不这么想了", d:[0,-2,0,0,0] }
+    ]
+  },
+  { q:"你的朋友通常用什么词形容你？",
+    o:[
+      { t:"通透、看得开", d:[0,0,-1,0,0] },
+      { t:"倔强、有主见", d:[2,0,0,1,2] },
+      { t:"温柔、善解人意", d:[0,0,1,-2,0] },
+      { t:"有趣、会讲段子", d:[1,1,2,-2,0] }
+    ]
+  },
+  { q:"你更喜欢哪种风景？",
+    o:[
+      { t:"大海，辽阔无边", d:[0,1,-1,0,0] },
+      { t:"高山，巍峨壮丽", d:[1,0,1,0,1] },
+      { t:"森林，幽静深邃", d:[-1,0,-1,-1,0] },
+      { t:"城市，灯火辉煌", d:[1,0,2,0,0] }
+    ]
+  },
+  { q:"你觉得'自由'是什么？",
+    o:[
+      { t:"想做什么就做什么", d:[2,0,0,0,2] },
+      { t:"不想做什么就可以不做什么", d:[-1,0,-1,0,1] },
+      { t:"内心不被任何东西捆绑", d:[-1,1,-3,0,-1] },
+      { t:"自由是一种责任", d:[1,0,2,1,1] }
+    ]
+  },
+  { q:"你如何看待'死亡'？",
+    o:[
+      { t:"不可避免，所以要好好活着", d:[1,-1,1,0,0] },
+      { t:"可怕，尽量不去想", d:[0,-1,0,-1,0] },
+      { t:"生命的一部分，坦然面对", d:[-1,0,-1,0,-1] },
+      { t:"死亡让生命有意义", d:[0,0,0,0,2] }
+    ]
+  },
+  // 16-20
+  { q:"你更认同哪种说法？",
+    o:[
+      { t:"存在先于本质——萨特", d:[1,0,1,1,2] },
+      { t:"成为你自己——尼采", d:[2,0,-1,0,3] },
+      { t:"顺其自然——庄子", d:[-2,2,-3,-1,-2] },
+      { t:"活着就是意义——余华", d:[-1,-2,0,-1,0] }
+    ]
+  },
+  { q:"你的情绪通常？",
+    o:[
+      { t:"波动很大，容易emo也容易开心", d:[0,0,0,-2,0] },
+      { t:"比较稳定，不容易被影响", d:[0,1,0,2,0] },
+      { t:"表面平静，内心波涛汹涌", d:[-1,-1,0,-1,0] },
+      { t:"看事情，有时候会想很多", d:[-1,0,0,0,0] }
+    ]
+  },
+  { q:"你相信'努力就会有回报'吗？",
+    o:[
+      { t:"相信，但不一定是以你想要的方式", d:[1,0,1,0,0] },
+      { t:"不太信，运气也很重要", d:[0,-1,0,1,0] },
+      { t:"不信，但还是要努力", d:[1,-2,1,0,1] },
+      { t:"相信，努力本身就是回报", d:[-1,1,0,0,0] }
+    ]
+  },
+  { q:"你更喜欢哪种幽默？",
+    o:[
+      { t:"讽刺幽默，笑着笑着就沉默了", d:[1,0,1,0,2] },
+      { t:"冷幽默，需要想一想才懂", d:[0,0,0,1,0] },
+      { t:"无厘头，纯粹好笑", d:[0,2,0,-1,0] },
+      { t:"黑色幽默，苦中作乐那种", d:[0,-1,0,0,1] }
+    ]
+  },
+  { q:"你觉得'孤独'是？",
+    o:[
+      { t:"不可避免的，要学会与之共处", d:[-1,0,-1,0,0] },
+      { t:"可怕的，总想找个人陪", d:[0,0,0,-2,0] },
+      { t:"享受的，一个人很自在", d:[-2,0,-2,0,0] },
+      { t:"人类共同的宿命", d:[0,-1,0,0,1] }
+    ]
+  },
+  // 21-25
+  { q:"你做事更靠什么决策？",
+    o:[
+      { t:"理性分析，数据说话", d:[0,0,0,2,0] },
+      { t:"直觉和感觉", d:[0,0,0,-2,0] },
+      { t:"两者结合，先分析再感受", d:[0,0,0,0,0] },
+      { t:"问别人意见", d:[0,0,1,-1,0] }
+    ]
+  },
+  { q:"你觉得'改变世界'是可能的吗？",
+    o:[
+      { t:"可能，每个人都能改变一点点", d:[1,0,2,0,2] },
+      { t:"很难，但值得尝试", d:[0,0,1,0,1] },
+      { t:"不可能，世界只会更糟", d:[0,-2,0,0,0] },
+      { t:"不需要改变世界，改变自己就够了", d:[-1,0,-2,0,-1] }
+    ]
+  },
+  { q:"你的理想生活状态是？",
+    o:[
+      { t:"有目标有挑战，忙并充实", d:[2,1,1,0,1] },
+      { t:"有闲有钱，自由自在", d:[-1,1,-1,0,0] },
+      { t:"有人懂你，有话说", d:[0,0,0,-2,0] },
+      { t:"心无挂碍，自得其乐", d:[-2,2,-3,0,-2] }
+    ]
+  },
+  { q:"你更关注'当下'还是'远方'？",
+    o:[
+      { t:"当下，此刻最重要", d:[0,0,1,0,0] },
+      { t:"远方，未来值得期待", d:[1,1,1,0,0] },
+      { t:"过去，人总是回头看", d:[-1,-1,0,-1,0] },
+      { t:"循环，过去未来都在当下", d:[-2,0,-1,0,0] }
+    ]
+  },
+  { q:"你觉得说出真相比保持沉默更重要吗？",
+    o:[
+      { t:"是，真相永远最重要", d:[2,0,2,1,3] },
+      { t:"分情况，有些真相没必要说", d:[0,0,0,0,-1] },
+      { t:"不是，假话有时候更舒服", d:[0,-1,0,0,-2] },
+      { t:"真相和善意之间需要平衡", d:[0,0,0,-1,0] }
+    ]
+  },
+  // 26-30
+  { q:"你容易被什么东西打动？",
+    o:[
+      { t:"真诚的人、简单的事", d:[0,0,0,-1,0] },
+      { t:"宏大的叙事、英雄的故事", d:[2,0,2,0,2] },
+      { t:"日常中的诗意", d:[-1,0,-1,-1,0] },
+      { t:"残酷背后的溫柔", d:[0,-1,0,-1,0] }
+    ]
+  },
+  { q:"你觉得人类最可贵的品质是？",
+    o:[
+      { t:"勇气，面对一切的勇气", d:[2,0,1,0,3] },
+      { t:"善良，对他人的关怀", d:[0,0,1,-2,0] },
+      { t:"智慧，认清生活的能力", d:[-1,0,0,1,0] },
+      { t:"韧性，打不倒的顽强", d:[1,-1,0,0,1] }
+    ]
+  },
+  { q:"放假时你更想？",
+    o:[
+      { t:"去一个陌生的地方旅行", d:[1,0,0,-1,0] },
+      { t:"在家看书看电影", d:[-2,0,0,0,0] },
+      { t:"和朋友聚会", d:[1,0,2,-1,0] },
+      { t:"学点新东西", d:[1,0,0,1,0] }
+    ]
+  },
+  { q:"你听过最扎心的一句话是？",
+    o:[
+      { t:'"你不是失败，你只是还没有成功"', d:[0,0,0,0,0] },
+      { t:'"大家都是第一次做人"', d:[0,0,0,0,0] },
+      { t:'"你本可以"', d:[1,0,0,0,0] },
+      { t:'"活着就好"' , d:[0,-1,0,0,0] }
+    ]
+  },
+  { q:"你觉得'意义'是？",
+    o:[
+      { t:"自己创造出来的", d:[1,0,0,1,2] },
+      { t:"客观存在的，等待发现", d:[-1,1,0,0,0] },
+      { t:"人生本来就没有意义", d:[0,-2,0,0,1] },
+      { t:"不必追问意义，过好每一天就够了", d:[0,0,0,0,-1] }
+    ]
+  },
+  // 31-35
+  { q:"你更喜欢哪种性格的人？",
+    o:[
+      { t:"直率、不拐弯抹角", d:[1,0,0,0,0] },
+      { t:"深沉、有思想", d:[-1,0,0,0,0] },
+      { t:"开朗、让人开心", d:[0,2,0,-1,0] },
+      { t:"温柔、会照顾人", d:[0,0,0,-2,0] }
+    ]
+  },
+  { q:"你认为'规则'应该被？",
+    o:[
+      { t:"遵守，没有规则社会会乱", d:[0,0,0,1,-2] },
+      { t:"质疑，不合理的就该打破", d:[0,0,1,0,3] },
+      { t:"灵活运用，看情况", d:[0,0,0,0,0] },
+      { t:"无视，真正的自由不需要规则", d:[-1,0,-1,0,2] }
+    ]
+  },
+  { q:"你觉得自己是？",
+    o:[
+      { t:"一个乐观的悲观主义者", d:[0,-1,0,0,0] },
+      { t:"一个悲观的乐观主义者", d:[0,0,0,0,0] },
+      { t:"纯粹的乐观派", d:[0,3,0,0,0] },
+      { t:"纯粹的悲观派", d:[0,-3,0,0,0] }
+    ]
+  },
+  { q:"你对'爱情'的终极理解是？",
+    o:[
+      { t:"爱是理解，不是占有", d:[0,0,0,-1,0] },
+      { t:"爱是孤独的解药", d:[0,-1,0,-1,0] },
+      { t:"爱是幻觉，但挺好的幻觉", d:[0,0,0,0,0] },
+      { t:"爱是承担责任", d:[1,0,1,1,1] }
+    ]
+  },
+  { q:"你如何看待'别人怎么看你'？",
+    o:[
+      { t:"不在乎，自己怎么开心怎么来", d:[1,0,-1,0,2] },
+      { t:"有点在意，但不会太受影响", d:[0,0,0,0,0] },
+      { t:"非常在意，会影响我的心情", d:[0,0,0,-2,0] },
+      { t:"完全不在乎，他们懂什么", d:[2,0,-2,1,3] }
+    ]
+  },
+  // 36-40
+  { q:"你最喜欢的季节是？",
+    o:[
+      { t:"春天，万物复苏", d:[0,1,0,-1,0] },
+      { t:"夏天，热烈奔放", d:[2,1,1,0,0] },
+      { t:"秋天，宁静深沉", d:[-1,0,0,0,0] },
+      { t:"冬天，清冽纯粹", d:[0,-1,-1,0,0] }
+    ]
+  },
+  { q:"你觉得'时间'是？",
+    o:[
+      { t:"治愈一切的良药", d:[0,1,0,0,0] },
+      { t:"残酷的东西，带走一切", d:[0,-2,0,0,0] },
+      { t:"人为的概念，其实不存在", d:[-1,0,-1,0,0] },
+      { t:"唯一公平的东西", d:[0,0,1,1,0] }
+    ]
+  },
+  { q:"你对'结婚'的看法？",
+    o:[
+      { t:"美好的承诺，值得期待", d:[0,0,0,-1,0] },
+      { t:"必要的束缚，但选择了就负责", d:[0,0,1,0,0] },
+      { t:"形式而已，真爱不需要证书", d:[0,0,-1,0,1] },
+      { t:"是两个人的共同成长", d:[0,0,0,0,0] }
+    ]
+  },
+  { q:"你处理冲突的方式是？",
+    o:[
+      { t:"面对面说清楚", d:[2,0,1,0,0] },
+      { t:"冷静后再说", d:[0,0,0,1,0] },
+      { t:"算了，不值得争", d:[-1,0,-1,0,-1] },
+      { t:"写下来表达，比说更清楚", d:[-1,0,0,-1,0] }
+    ]
+  },
+  { q:"你对'理想主义'的态度是？",
+    o:[
+      { t:"理想很重要，是活着的意义", d:[1,0,1,0,2] },
+      { t:"理想很丰满，现实很骨感", d:[0,-1,0,0,0] },
+      { t:"没有理想，活得更轻松", d:[-1,0,-1,0,-1] },
+      { t:"人不能失去理想，哪怕它很遥远", d:[1,0,0,0,1] }
+    ]
+  },
+  // 41-45
+  { q:"你觉得自己更接近哪种动物？",
+    o:[
+      { t:"猫，独立又优雅", d:[-1,0,-1,0,1] },
+      { t:"狼，坚韧又团结", d:[2,0,1,0,2] },
+      { t:"鸟，自由自在", d:[0,1,-2,0,0] },
+      { t:"树，沉默而坚定", d:[-2,0,-1,0,0] }
+    ]
+  },
+  { q:"你觉得'真理'是？",
+    o:[
+      { t:"相对的，不同角度不同答案", d:[0,0,0,0,0] },
+      { t:"绝对的，只是我们还没找到", d:[0,0,0,1,0] },
+      { t:"不存在的，一切都是叙事", d:[0,0,0,0,2] },
+      { t:"需要自己去验证的", d:[1,0,0,1,1] }
+    ]
+  },
+  { q:"面对人生的荒谬，你选择？",
+    o:[
+      { t:"反抗——保持清醒，继续生活", d:[2,-1,1,0,3] },
+      { t:"接受——既然荒谬，何必较真", d:[-1,0,-1,0,-2] },
+      { t:"超越——创造属于自己的意义", d:[1,0,0,0,2] },
+      { t:"无视——想那么多干嘛", d:[0,1,0,0,0] }
+    ]
+  },
+  { q:"你最喜欢的艺术形式是？",
+    o:[
+      { t:"小说，能装下整个世界", d:[0,0,0,-1,0] },
+      { t:"诗歌，很短却很深", d:[-1,0,0,-2,0] },
+      { t:"电影，视听都是故事", d:[0,0,0,0,0] },
+      { t:"音乐，直达灵魂", d:[0,0,-1,-2,0] }
+    ]
+  },
+  { q:"你更愿意成为？",
+    o:[
+      { t:"一座灯塔，照亮别人", d:[1,0,2,0,1] },
+      { t:"一棵树，站成永恒", d:[-2,0,-1,0,0] },
+      { t:"一阵风，自由来去", d:[0,1,-2,0,0] },
+      { t:"一颗星，孤独闪烁", d:[-1,0,-2,0,0] }
+    ]
+  },
+  // 46-50
+  { q:"你相信'这个世界会好吗'？",
+    o:[
+      { t:"会好的，因为有人在努力", d:[1,1,2,0,1] },
+      { t:"不会，但我还是想试试", d:[1,-2,2,0,2] },
+      { t:"不知道，也不想知道", d:[-1,0,-1,0,0] },
+      { t:"好与不好，取决于你怎么看", d:[0,0,0,0,0] }
+    ]
+  },
+  { q:"你最想拥有的超能力是？",
+    o:[
+      { t:"读心术，了解真实的人心", d:[0,0,0,0,0] },
+      { t:"时间倒流，弥补遗憾", d:[-1,-1,0,0,0] },
+      { t:"隐身，旁观一切", d:[-1,0,-1,0,0] },
+      { t:"飞翔，想去哪去哪", d:[1,1,-1,0,0] }
+    ]
+  },
+  { q:"你觉得痛苦和快乐的关系是？",
+    o:[
+      { t:"痛苦之后才有真正的快乐", d:[0,0,0,0,1] },
+      { t:"快乐是短暂的，痛苦是常态", d:[0,-2,0,0,0] },
+      { t:"二者共存，没有痛苦就没有快乐", d:[0,0,0,0,0] },
+      { t:"不值得追求快乐，值得追求意义", d:[0,-1,0,0,2] }
+    ]
+  },
+  { q:"你更怕什么？",
+    o:[
+      { t:"平庸地活着", d:[2,0,0,0,3] },
+      { t:"孤独地死去", d:[0,-1,0,-1,0] },
+      { t:"失去自我", d:[-1,0,-1,0,2] },
+      { t:"什么都没经历过就老了", d:[1,0,0,0,1] }
+    ]
+  },
+  { q:"最后一题！你的人生信条是？",
+    o:[
+      { t:"存在即是合理——黑格尔", d:[0,0,0,1,-1] },
+      { t:"成为你自己——尼采", d:[2,0,-1,0,3] },
+      { t:"知行合一——王阳明", d:[1,0,1,0,0] },
+      { t:"顺其自然——老子", d:[-2,1,-3,0,-2] }
+    ]
+  }
+];
+
+let answers = [];
+let currentQ = 0;
+let userDims = [0,0,0,0,0];
+
+function startQuiz() {
+  document.getElementById("startPage").style.display = "none";
+  document.getElementById("quizPage").style.display = "block";
+  document.getElementById("resultPage").style.display = "none";
+  answers = [];
+  currentQ = 0;
+  userDims = [0,0,0,0,0];
+  showQuestion(0);
+}
+
+function showQuestion(idx) {
+  if (idx >= questions.length) {
+    showResult();
+    return;
+  }
+  const q = questions[idx];
+  document.getElementById("qNum").textContent = idx + 1;
+  document.getElementById("qNumber").textContent = "问题 " + (idx + 1);
+  document.getElementById("qText").textContent = q.q;
+  document.getElementById("progressFill").style.width = ((idx) / questions.length * 100) + "%";
+  
+  const optsDiv = document.getElementById("options");
+  optsDiv.innerHTML = "";
+  q.o.forEach((opt, oi) => {
+    const el = document.createElement("div");
+    el.className = "option";
+    el.textContent = opt.t;
+    el.onclick = () => selectOption(idx, oi, opt.d);
+    optsDiv.appendChild(el);
+  });
+}
+
+function selectOption(qIdx, oIdx, dimChanges) {
+  // Highlight selected
+  document.querySelectorAll(".option").forEach((el, i) => {
+    el.classList.toggle("selected", i === oIdx);
+  });
+  
+  // Store answer
+  answers[qIdx] = oIdx;
+  
+  // Apply dimension changes
+  for (let i = 0; i < 5; i++) userDims[i] += dimChanges[i];
+  
+  // Auto advance after brief pause
+  setTimeout(() => {
+    showQuestion(qIdx + 1);
+  }, 300);
+}
+
+function showResult() {
+  document.getElementById("quizPage").style.display = "none";
+  document.getElementById("resultPage").style.display = "block";
+  document.getElementById("resultCard").innerHTML = '<div class="loading-text">✨ 正在分析你的灵魂谱系...</div>';
+  
+  setTimeout(() => {
+    computeResult();
+  }, 1200);
+}
+
+function computeResult() {
+  // Normalize user dims to -3..3 range
+  const quizCount = questions.length;
+  const normDims = userDims.map(d => Math.max(-3, Math.min(3, d / quizCount * 2)));
+  
+  // Compute similarity to each philosopher (Euclidean distance → %)
+  const results = philosophers.map(p => {
+    let dist = 0;
+    for (let i = 0; i < 5; i++) {
+      dist += Math.pow(normDims[i] - p.dims[i], 2);
+    }
+    dist = Math.sqrt(dist);
+    const maxDist = Math.sqrt(5 * Math.pow(6, 2)); // ~13.4
+    const score = Math.round((1 - dist / maxDist) * 100);
+    return { ...p, score: Math.max(0, Math.min(100, score)) };
+  });
+  
+  results.sort((a, b) => b.score - a.score);
+  const top = results[0];
+  
+  // Build result card
+  const card = document.getElementById("resultCard");
+  
+  let tagsHtml = top.tags.map(t => `<span class="tag">${t}</span>`).join("");
+  
+  // Match bars (top 5)
+  let barsHtml = "";
+  const top5 = results.slice(0, 5);
+  top5.forEach(r => {
+    const color = r.id === top.id ? "#f59e0b" : "#6b7280";
+    barsHtml += `<div class="match-bar">
+      <span class="label">${r.name}</span>
+      <div class="bar-bg"><div class="bar-fill" style="width:${r.score}%;background:${color}"></div></div>
+      <span class="bar-pct">${r.score}%</span>
+    </div>`;
+  });
+  
+  // Show philosopher image with fallback to emoji
+  let imgHtml;
+  if (top.img) {
+    imgHtml = `<div class="result-avatar"><img src="${top.img}" onerror="this.style.display='none';this.parentNode.innerHTML='<span class=\\"emoji-avatar\\" style=\\"font-size:52px\\">${top.emoji}<\\/span>'" alt="${top.name}"></div>`;
+  } else {
+    imgHtml = `<div class="result-avatar"><span class="emoji-avatar">${top.emoji}</span></div>`;
+  }
+  
+  card.innerHTML = `
+    <div id="resultCapture">
+    ${imgHtml}
+    <div class="result-name">${top.name}</div>
+    <div class="result-enname">${top.en}</div>
+    <div class="result-years">${top.years}</div>
+    <div class="result-tags">${tagsHtml}</div>
+    <div class="match-bar-section">${barsHtml}</div>
+    <div class="result-quote">“ ${top.quote} ”</div>
+    <div class="result-desc">${top.desc}</div>
+    </div>
+    <div class="result-actions">
+      <button class="btn btn-small" onclick="saveAsImage()">📸 保存图片</button>
+      <button class="btn btn-small" onclick="restartQuiz()">🔁 再测一次</button>
+      <button class="reset-btn" onclick="showStart()">← 返回首页</button>
+    </div>
+  `;
+}
+
+function saveAsImage() {
+  if (typeof html2canvas === 'undefined') {
+    alert('html2canvas 加载中，请稍后再试');
+    return;
+  }
+  const target = document.getElementById('resultCapture');
+  html2canvas(target, {
+    scale: 2,
+    backgroundColor: '#0a0e17',
+    useCORS: true,
+    allowTaint: false
+  }).then(canvas => {
+    const link = document.createElement('a');
+    link.download = '\u7075\u9b42\u6587\u54f2\u5339\u914d_' + Date.now() + '.png';
+    link.href = canvas.toDataURL('image/png');
+    link.click();
+  }).catch(err => {
+    console.error(err);
+    alert('\u4fdd\u5b58\u5931\u8d25\uff0c\u8bf7\u5c1d\u8bd5\u622a\u5c4f');
+  });
+}
+
+function restartQuiz() {
+  document.getElementById("resultPage").style.display = "none";
+  startQuiz();
+}
+
+function showStart() {
+  document.getElementById("quizPage").style.display = "none";
+  document.getElementById("resultPage").style.display = "none";
+  document.getElementById("startPage").style.display = "block";
+}
+</script>
+</body>
+</html>
